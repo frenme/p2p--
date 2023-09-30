@@ -2,6 +2,7 @@ package network
 
 import (
 	"net"
+	"strconv"
 )
 
 type TCPServer struct {
@@ -18,7 +19,7 @@ func NewTCPServer(port int) *TCPServer {
 }
 
 func (s *TCPServer) Start() error {
-	listener, err := net.Listen("tcp", ":"+string(rune(s.port)))
+	listener, err := net.Listen("tcp", ":"+strconv.Itoa(s.port))
 	if err != nil {
 		return err
 	}

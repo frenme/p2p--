@@ -1,8 +1,12 @@
 package discovery
 
 import (
+	"fmt"
 	"net"
+	"strconv"
 	"time"
+
+	"p2p-chat/internal/chat"
 )
 
 type Discovery struct {
@@ -22,7 +26,7 @@ func New(port int, username string) *Discovery {
 }
 
 func (d *Discovery) Start() error {
-	addr, err := net.ResolveUDPAddr("udp", ":"+string(rune(d.port)))
+	addr, err := net.ResolveUDPAddr("udp", ":"+strconv.Itoa(d.port))
 	if err != nil {
 		return err
 	}
@@ -33,20 +37,27 @@ func (d *Discovery) Start() error {
 	}
 	defer conn.Close()
 
-	go d.broadcast()
+	go d.broadcast(conn)
 	go d.listen(conn)
 
 	<-d.stopCh
 	return nil
 }
 
-func (d *Discovery) broadcast() {
+func (d *Discovery) broadcast(conn *net.UDPConn) {
 	ticker := time.NewTicker(5 * time.Second)
 	defer ticker.Stop()
+
+	broadcastAddr, _ := net.ResolveUDPAddr("udp", "255.255.255.255:"+strconv.Itoa(d.port))
 
 	for {
 		select {
 		case <-ticker.C:
+			msg := chat.NewDiscoveryMessage(d.username)
+			data, err := msg.ToJSON()
+			if err == nil {
+				conn.WriteToUDP(data, broadcastAddr)
+			}
 		case <-d.stopCh:
 			return
 		}
@@ -60,9 +71,17 @@ func (d *Discovery) listen(conn *net.UDPConn) {
 		case <-d.stopCh:
 			return
 		default:
-			_, _, err := conn.ReadFromUDP(buffer)
+			n, addr, err := conn.ReadFromUDP(buffer)
 			if err != nil {
 				continue
+			}
+			msg, err := chat.MessageFromJSON(buffer[:n])
+			if err != nil {
+				continue
+			}
+			if msg.Type == chat.MessageTypeDiscovery && msg.From != d.username {
+				d.peers[msg.From] = addr.IP.String()
+				fmt.Printf("Discovered peer: %s at %s\n", msg.From, addr.IP.String())
 			}
 		}
 	}
