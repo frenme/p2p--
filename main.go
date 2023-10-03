@@ -1,8 +1,14 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"os"
+	"os/signal"
+	"strings"
+	"syscall"
+
+	"p2p-chat/internal/chat"
 )
 
 func main() {
@@ -12,5 +18,43 @@ func main() {
 	}
 	
 	username := os.Args[1]
-	fmt.Printf("Starting P2P chat for user: %s\n", username)
+	
+	c := chat.NewChat(username, 8080, 8081)
+	
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
+	
+	go func() {
+		<-sigCh
+		fmt.Println("\nShutting down...")
+		c.Stop()
+	}()
+	
+	go func() {
+		if err := c.Start(); err != nil {
+			fmt.Printf("Error starting chat: %v\n", err)
+		}
+	}()
+	
+	scanner := bufio.NewScanner(os.Stdin)
+	for scanner.Scan() {
+		input := strings.TrimSpace(scanner.Text())
+		if input == "quit" {
+			break
+		}
+		if input == "peers" {
+			peers := c.GetPeers()
+			fmt.Printf("Active peers (%d):\n", len(peers))
+			for name, addr := range peers {
+				fmt.Printf("  %s (%s)\n", name, addr)
+			}
+			continue
+		}
+		if input != "" {
+			msg := chat.NewTextMessage(username, input)
+			c.AddMessage(msg)
+		}
+	}
+	
+	c.Stop()
 }
