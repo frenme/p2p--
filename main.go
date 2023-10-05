@@ -9,6 +9,7 @@ import (
 	"syscall"
 
 	"p2p-chat/internal/chat"
+	"p2p-chat/internal/types"
 )
 
 func main() {
@@ -51,7 +52,7 @@ func main() {
 			continue
 		}
 		if input != "" {
-			msg := chat.NewTextMessage(username, input)
+			msg := types.NewTextMessage(username, input)
 			c.AddMessage(msg)
 		}
 	}

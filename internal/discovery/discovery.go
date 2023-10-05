@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"time"
 
-	"p2p-chat/internal/chat"
+	"p2p-chat/internal/types"
 )
 
 type Discovery struct {
@@ -53,7 +53,7 @@ func (d *Discovery) broadcast(conn *net.UDPConn) {
 	for {
 		select {
 		case <-ticker.C:
-			msg := chat.NewDiscoveryMessage(d.username)
+			msg := types.NewDiscoveryMessage(d.username)
 			data, err := msg.ToJSON()
 			if err == nil {
 				conn.WriteToUDP(data, broadcastAddr)
@@ -75,11 +75,11 @@ func (d *Discovery) listen(conn *net.UDPConn) {
 			if err != nil {
 				continue
 			}
-			msg, err := chat.MessageFromJSON(buffer[:n])
+			msg, err := types.MessageFromJSON(buffer[:n])
 			if err != nil {
 				continue
 			}
-			if msg.Type == chat.MessageTypeDiscovery && msg.From != d.username {
+			if msg.Type == types.MessageTypeDiscovery && msg.From != d.username {
 				d.peers[msg.From] = addr.IP.String()
 				fmt.Printf("Discovered peer: %s at %s\n", msg.From, addr.IP.String())
 			}
