@@ -44,6 +44,8 @@ func (c *Chat) Start() error {
 		}
 	}()
 
+	go c.handleIncomingMessages()
+
 	time.Sleep(100 * time.Millisecond)
 	fmt.Println("Chat started successfully!")
 	fmt.Println("Type messages to send, or 'quit' to exit")
@@ -73,4 +75,32 @@ func (c *Chat) GetMessages() []*types.Message {
 
 func (c *Chat) GetPeers() map[string]string {
 	return c.discovery.GetPeers()
+}
+
+func (c *Chat) handleIncomingMessages() {
+	for {
+		select {
+		case msg := <-c.tcpServer.GetMessageChannel():
+			if msg.Type == types.MessageTypeText {
+				c.AddMessage(msg)
+			}
+		case <-c.stopCh:
+			return
+		}
+	}
+}
+
+func (c *Chat) SendMessageToPeers(content string) {
+	msg := types.NewTextMessage(c.username, content)
+	peers := c.GetPeers()
+	
+	for _, addr := range peers {
+		go func(address string) {
+			if err := network.SendMessage(address, 8081, msg); err != nil {
+				fmt.Printf("Failed to send message to %s: %v\n", address, err)
+			}
+		}(addr)
+	}
+	
+	c.AddMessage(msg)
 }

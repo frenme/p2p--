@@ -1,20 +1,27 @@
 package network
 
 import (
+	"bufio"
+	"encoding/json"
+	"fmt"
 	"net"
 	"strconv"
+
+	"p2p-chat/internal/types"
 )
 
 type TCPServer struct {
-	port     int
-	listener net.Listener
-	stopCh   chan struct{}
+	port       int
+	listener   net.Listener
+	stopCh     chan struct{}
+	messageCh  chan *types.Message
 }
 
 func NewTCPServer(port int) *TCPServer {
 	return &TCPServer{
-		port:   port,
-		stopCh: make(chan struct{}),
+		port:      port,
+		stopCh:    make(chan struct{}),
+		messageCh: make(chan *types.Message, 100),
 	}
 }
 
@@ -47,6 +54,19 @@ func (s *TCPServer) acceptConnections() {
 
 func (s *TCPServer) handleConnection(conn net.Conn) {
 	defer conn.Close()
+	
+	scanner := bufio.NewScanner(conn)
+	for scanner.Scan() {
+		var msg types.Message
+		if err := json.Unmarshal(scanner.Bytes(), &msg); err != nil {
+			continue
+		}
+		
+		select {
+		case s.messageCh <- &msg:
+		default:
+		}
+	}
 }
 
 func (s *TCPServer) Stop() {
@@ -54,4 +74,24 @@ func (s *TCPServer) Stop() {
 	if s.listener != nil {
 		s.listener.Close()
 	}
+}
+
+func (s *TCPServer) GetMessageChannel() <-chan *types.Message {
+	return s.messageCh
+}
+
+func SendMessage(address string, port int, msg *types.Message) error {
+	conn, err := net.Dial("tcp", fmt.Sprintf("%s:%d", address, port))
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+	
+	data, err := json.Marshal(msg)
+	if err != nil {
+		return err
+	}
+	
+	_, err = conn.Write(append(data, '\n'))
+	return err
 }

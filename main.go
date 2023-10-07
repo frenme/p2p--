@@ -52,8 +52,7 @@ func main() {
 			continue
 		}
 		if input != "" {
-			msg := types.NewTextMessage(username, input)
-			c.AddMessage(msg)
+			c.SendMessageToPeers(input)
 		}
 	}
 	
