@@ -9,7 +9,6 @@ import (
 	"syscall"
 
 	"p2p-chat/internal/chat"
-	"p2p-chat/internal/types"
 )
 
 func main() {
