@@ -14,6 +14,7 @@ type Chat struct {
 	username  string
 	discovery *discovery.Discovery
 	tcpServer *network.TCPServer
+	tcpClient *network.TCPClient
 	messages  []*types.Message
 	mu        sync.RWMutex
 	stopCh    chan struct{}
@@ -24,6 +25,7 @@ func NewChat(username string, discoveryPort, tcpPort int) *Chat {
 		username:  username,
 		discovery: discovery.New(discoveryPort, username),
 		tcpServer: network.NewTCPServer(tcpPort),
+		tcpClient: network.NewTCPClient(),
 		messages:  make([]*types.Message, 0),
 		stopCh:    make(chan struct{}),
 	}
@@ -96,7 +98,7 @@ func (c *Chat) SendMessageToPeers(content string) {
 	
 	for _, addr := range peers {
 		go func(address string) {
-			if err := network.SendMessage(address, 8081, msg); err != nil {
+			if err := c.tcpClient.SendMessage(address, 8081, msg); err != nil {
 				fmt.Printf("Failed to send message to %s: %v\n", address, err)
 			}
 		}(addr)

@@ -3,7 +3,6 @@ package network
 import (
 	"bufio"
 	"encoding/json"
-	"fmt"
 	"net"
 	"strconv"
 
@@ -80,18 +79,3 @@ func (s *TCPServer) GetMessageChannel() <-chan *types.Message {
 	return s.messageCh
 }
 
-func SendMessage(address string, port int, msg *types.Message) error {
-	conn, err := net.Dial("tcp", fmt.Sprintf("%s:%d", address, port))
-	if err != nil {
-		return err
-	}
-	defer conn.Close()
-	
-	data, err := json.Marshal(msg)
-	if err != nil {
-		return err
-	}
-	
-	_, err = conn.Write(append(data, '\n'))
-	return err
-}
