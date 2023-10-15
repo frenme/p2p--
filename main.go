@@ -9,6 +9,7 @@ import (
 	"syscall"
 
 	"p2p-chat/internal/chat"
+	"p2p-chat/internal/cli"
 )
 
 func main() {
@@ -36,23 +37,27 @@ func main() {
 		}
 	}()
 	
+	fmt.Println("Type /help for available commands")
+	
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
 		input := strings.TrimSpace(scanner.Text())
-		if input == "quit" {
-			break
+		if input == "" {
+			continue
 		}
-		if input == "peers" {
-			peers := c.GetPeers()
-			fmt.Printf("Active peers (%d):\n", len(peers))
-			for name, addr := range peers {
-				fmt.Printf("  %s (%s)\n", name, addr)
+		
+		isCommand, err := cli.HandleCommand(c, input)
+		if isCommand {
+			if err != nil {
+				if err.Error() == "quit" {
+					break
+				}
+				fmt.Printf("Error: %v\n", err)
 			}
 			continue
 		}
-		if input != "" {
-			c.SendMessageToPeers(input)
-		}
+		
+		c.SendMessageToPeers(input)
 	}
 	
 	c.Stop()
