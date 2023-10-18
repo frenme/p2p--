@@ -6,33 +6,40 @@ import (
 	"time"
 
 	"p2p-chat/internal/discovery"
+	"p2p-chat/internal/history"
 	"p2p-chat/internal/network"
 	"p2p-chat/internal/types"
 )
 
 type Chat struct {
-	username  string
-	discovery *discovery.Discovery
-	tcpServer *network.TCPServer
-	tcpClient *network.TCPClient
-	messages  []*types.Message
-	mu        sync.RWMutex
-	stopCh    chan struct{}
+	username       string
+	discovery      *discovery.Discovery
+	tcpServer      *network.TCPServer
+	tcpClient      *network.TCPClient
+	historyManager *history.Manager
+	messages       []*types.Message
+	mu             sync.RWMutex
+	stopCh         chan struct{}
 }
 
 func NewChat(username string, discoveryPort, tcpPort int) *Chat {
 	return &Chat{
-		username:  username,
-		discovery: discovery.New(discoveryPort, username),
-		tcpServer: network.NewTCPServer(tcpPort),
-		tcpClient: network.NewTCPClient(),
-		messages:  make([]*types.Message, 0),
-		stopCh:    make(chan struct{}),
+		username:       username,
+		discovery:      discovery.New(discoveryPort, username),
+		tcpServer:      network.NewTCPServer(tcpPort),
+		tcpClient:      network.NewTCPClient(),
+		historyManager: history.NewManager(username),
+		messages:       make([]*types.Message, 0),
+		stopCh:         make(chan struct{}),
 	}
 }
 
 func (c *Chat) Start() error {
 	fmt.Printf("Starting chat for %s...\n", c.username)
+
+	if err := c.historyManager.LoadHistory(); err != nil {
+		fmt.Printf("Warning: failed to load history: %v\n", err)
+	}
 
 	go func() {
 		if err := c.discovery.Start(); err != nil {
@@ -57,6 +64,9 @@ func (c *Chat) Start() error {
 }
 
 func (c *Chat) Stop() {
+	if err := c.historyManager.SaveHistory(); err != nil {
+		fmt.Printf("Warning: failed to save history: %v\n", err)
+	}
 	c.discovery.Stop()
 	c.tcpServer.Stop()
 	close(c.stopCh)
@@ -66,6 +76,7 @@ func (c *Chat) AddMessage(msg *types.Message) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	c.messages = append(c.messages, msg)
+	c.historyManager.AddMessage(msg)
 	fmt.Printf("[%s] %s: %s\n", msg.Timestamp.Format("15:04:05"), msg.From, msg.Content)
 }
 
