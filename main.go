@@ -4,12 +4,12 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"os/signal"
 	"strings"
-	"syscall"
 
 	"p2p-chat/internal/chat"
 	"p2p-chat/internal/cli"
+	"p2p-chat/internal/config"
+	"p2p-chat/internal/utils"
 )
 
 func main() {
@@ -19,15 +19,13 @@ func main() {
 	}
 	
 	username := os.Args[1]
+	cfg := config.DefaultConfig()
 	
-	c := chat.NewChat(username, 8080, 8081)
-	
-	sigCh := make(chan os.Signal, 1)
-	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
+	c := chat.NewChat(username, cfg.DiscoveryPort, cfg.TCPPort)
+	shutdown := utils.NewGracefulShutdown(cfg.ShutdownTimeout)
 	
 	go func() {
-		<-sigCh
-		fmt.Println("\nShutting down...")
+		shutdown.WaitForSignal()
 		c.Stop()
 	}()
 	
