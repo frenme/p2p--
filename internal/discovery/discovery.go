@@ -14,9 +14,11 @@ type Discovery struct {
 	port            int
 	username        string
 	peers           map[string]string
+	peerLastSeen    map[string]time.Time
 	stopCh          chan struct{}
 	mu              sync.RWMutex
 	broadcastPeriod time.Duration
+	peerTimeout     time.Duration
 }
 
 func New(port int, username string) *Discovery {
@@ -24,8 +26,10 @@ func New(port int, username string) *Discovery {
 		port:            port,
 		username:        username,
 		peers:           make(map[string]string),
+		peerLastSeen:    make(map[string]time.Time),
 		stopCh:          make(chan struct{}),
 		broadcastPeriod: 5 * time.Second,
+		peerTimeout:     30 * time.Second,
 	}
 }
 
@@ -43,6 +47,7 @@ func (d *Discovery) Start() error {
 
 	go d.broadcast(conn)
 	go d.listen(conn)
+	go d.cleanupPeers()
 
 	<-d.stopCh
 	return nil
@@ -95,6 +100,7 @@ func (d *Discovery) listen(conn *net.UDPConn) {
 			if msg.Type == types.MessageTypeDiscovery && msg.From != d.username {
 				d.mu.Lock()
 				d.peers[msg.From] = addr.IP.String()
+				d.peerLastSeen[msg.From] = time.Now()
 				d.mu.Unlock()
 				fmt.Printf("Discovered peer: %s at %s\n", msg.From, addr.IP.String())
 			}
@@ -115,4 +121,27 @@ func (d *Discovery) GetPeers() map[string]string {
 		result[name] = addr
 	}
 	return result
+}
+
+func (d *Discovery) cleanupPeers() {
+	ticker := time.NewTicker(10 * time.Second)
+	defer ticker.Stop()
+	
+	for {
+		select {
+		case <-ticker.C:
+			d.mu.Lock()
+			now := time.Now()
+			for name, lastSeen := range d.peerLastSeen {
+				if now.Sub(lastSeen) > d.peerTimeout {
+					delete(d.peers, name)
+					delete(d.peerLastSeen, name)
+					fmt.Printf("Peer %s timed out\n", name)
+				}
+			}
+			d.mu.Unlock()
+		case <-d.stopCh:
+			return
+		}
+	}
 }
