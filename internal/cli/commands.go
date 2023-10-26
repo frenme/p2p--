@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"p2p-chat/internal/chat"
+	"p2p-chat/internal/version"
 )
 
 type Command struct {
@@ -32,11 +33,26 @@ func init() {
 			Description: "Show message history",
 			Handler:     handleHistory,
 		},
-		"clear": {
-			Name:        "clear",
-			Description: "Clear screen",
-			Handler:     handleClear,
-		},
+			"clear": {
+		Name:        "clear",
+		Description: "Clear screen",
+		Handler:     handleClear,
+	},
+	"save": {
+		Name:        "save",
+		Description: "Save message history to file",
+		Handler:     handleSave,
+	},
+	"status": {
+		Name:        "status",
+		Description: "Show chat status",
+		Handler:     handleStatus,
+	},
+	"version": {
+		Name:        "version",
+		Description: "Show version information",
+		Handler:     handleVersion,
+	},
 		"quit": {
 			Name:        "quit",
 			Description: "Exit the chat",
@@ -105,4 +121,43 @@ func handleClear(c *chat.Chat, args []string) error {
 
 func handleQuit(c *chat.Chat, args []string) error {
 	return fmt.Errorf("quit")
+}
+
+func handleSave(c *chat.Chat, args []string) error {
+	filename := "chat_export.json"
+	if len(args) > 0 {
+		filename = args[0]
+	}
+	
+	messages := c.GetMessages()
+	if len(messages) == 0 {
+		fmt.Println("No messages to save")
+		return nil
+	}
+	
+	fmt.Printf("History would be saved to %s (feature not fully implemented)\n", filename)
+	return nil
+}
+
+func handleStatus(c *chat.Chat, args []string) error {
+	peers := c.GetPeers()
+	messages := c.GetMessages()
+	
+	fmt.Println("=== Chat Status ===")
+	fmt.Printf("Active peers: %d\n", len(peers))
+	fmt.Printf("Messages in memory: %d\n", len(messages))
+	
+	if len(peers) > 0 {
+		fmt.Println("\nConnected peers:")
+		for name, addr := range peers {
+			fmt.Printf("  • %s (%s)\n", name, addr)
+		}
+	}
+	
+	return nil
+}
+
+func handleVersion(c *chat.Chat, args []string) error {
+	fmt.Println(version.Full())
+	return nil
 }
