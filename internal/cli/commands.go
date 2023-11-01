@@ -3,8 +3,10 @@ package cli
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"p2p-chat/internal/chat"
+	"p2p-chat/internal/metrics"
 	"p2p-chat/internal/version"
 )
 
@@ -52,6 +54,11 @@ func init() {
 		Name:        "version",
 		Description: "Show version information",
 		Handler:     handleVersion,
+	},
+	"metrics": {
+		Name:        "metrics",
+		Description: "Show chat metrics",
+		Handler:     handleMetrics,
 	},
 		"quit": {
 			Name:        "quit",
@@ -159,5 +166,19 @@ func handleStatus(c *chat.Chat, args []string) error {
 
 func handleVersion(c *chat.Chat, args []string) error {
 	fmt.Println(version.Full())
+	return nil
+}
+
+func handleMetrics(c *chat.Chat, args []string) error {
+	m := metrics.Global()
+	sent, received, discovered, errors, uptime := m.GetStats()
+	
+	fmt.Println("=== Chat Metrics ===")
+	fmt.Printf("Uptime: %v\n", uptime.Truncate(time.Second))
+	fmt.Printf("Messages sent: %d\n", sent)
+	fmt.Printf("Messages received: %d\n", received)
+	fmt.Printf("Peers discovered: %d\n", discovered)
+	fmt.Printf("Connection errors: %d\n", errors)
+	
 	return nil
 }

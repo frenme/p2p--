@@ -7,8 +7,10 @@ import (
 
 	"p2p-chat/internal/discovery"
 	"p2p-chat/internal/history"
+	"p2p-chat/internal/metrics"
 	"p2p-chat/internal/network"
 	"p2p-chat/internal/types"
+	"p2p-chat/internal/utils"
 )
 
 type Chat struct {
@@ -95,6 +97,7 @@ func (c *Chat) handleIncomingMessages() {
 		select {
 		case msg := <-c.tcpServer.GetMessageChannel():
 			if msg.Type == types.MessageTypeText {
+				metrics.Global().IncrementMessagesReceived()
 				c.AddMessage(msg)
 			}
 		case <-c.stopCh:
@@ -104,6 +107,11 @@ func (c *Chat) handleIncomingMessages() {
 }
 
 func (c *Chat) SendMessageToPeers(content string) {
+	content = utils.SanitizeMessage(content)
+	if content == "" {
+		return
+	}
+	
 	msg := types.NewTextMessage(c.username, content)
 	peers := c.GetPeers()
 	
@@ -111,6 +119,9 @@ func (c *Chat) SendMessageToPeers(content string) {
 		go func(address string) {
 			if err := c.tcpClient.SendMessage(address, 8081, msg); err != nil {
 				fmt.Printf("Failed to send message to %s: %v\n", address, err)
+				metrics.Global().IncrementConnectionErrors()
+			} else {
+				metrics.Global().IncrementMessagesSent()
 			}
 		}(addr)
 	}
