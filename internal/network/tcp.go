@@ -1,3 +1,4 @@
+// Package network provides TCP server and client functionality for P2P communication.
 package network
 
 import (

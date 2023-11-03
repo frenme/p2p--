@@ -19,12 +19,12 @@ func main() {
 	}
 
 	username := os.Args[1]
-	
+
 	if !utils.IsValidUsername(username) {
 		fmt.Printf("Error: Invalid username '%s'. Username must be 2-20 characters and contain only letters, digits, underscores, and dashes.\n", username)
 		return
 	}
-	
+
 	cfg := config.DefaultConfig()
 
 	c := chat.NewChat(username, cfg.DiscoveryPort, cfg.TCPPort)

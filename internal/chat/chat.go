@@ -1,3 +1,4 @@
+// Package chat provides the main chat functionality, coordinating discovery, networking and messaging.
 package chat
 
 import (

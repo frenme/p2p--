@@ -1,3 +1,4 @@
+// Package discovery provides UDP-based peer discovery for the P2P chat.
 package discovery
 
 import (
