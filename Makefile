@@ -41,3 +41,21 @@ lint:
 	@echo "Running linter..."
 	@go vet ./...
 	@go fmt ./...
+
+demo: build
+	@echo "Starting demo with two users..."
+	@echo "Open two terminals and run:"
+	@echo "  Terminal 1: ./$(BUILD_DIR)/$(BINARY_NAME) Alice"
+	@echo "  Terminal 2: ./$(BUILD_DIR)/$(BINARY_NAME) Bob"
+
+help:
+	@echo "Available targets:"
+	@echo "  build    - Build the binary"
+	@echo "  test     - Run tests"
+	@echo "  clean    - Clean build artifacts"
+	@echo "  run      - Build and run with default user"
+	@echo "  install  - Install to /usr/local/bin"
+	@echo "  deps     - Download dependencies"
+	@echo "  lint     - Run linter and formatter"
+	@echo "  demo     - Show demo instructions"
+	@echo "  help     - Show this help"
