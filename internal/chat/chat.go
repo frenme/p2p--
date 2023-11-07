@@ -80,7 +80,7 @@ func (c *Chat) AddMessage(msg *types.Message) {
 	defer c.mu.Unlock()
 	c.messages = append(c.messages, msg)
 	c.historyManager.AddMessage(msg)
-	fmt.Printf("[%s] %s: %s\n", msg.Timestamp.Format("15:04:05"), msg.From, msg.Content)
+	fmt.Printf("💬 [%s] %s: %s\n", msg.Timestamp.Format("15:04:05"), msg.From, msg.Content)
 }
 
 func (c *Chat) GetMessages() []*types.Message {

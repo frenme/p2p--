@@ -103,7 +103,7 @@ func (d *Discovery) listen(conn *net.UDPConn) {
 				d.peers[msg.From] = addr.IP.String()
 				d.peerLastSeen[msg.From] = time.Now()
 				d.mu.Unlock()
-				fmt.Printf("Discovered peer: %s at %s\n", msg.From, addr.IP.String())
+				fmt.Printf("🔍 Discovered peer: %s at %s\n", msg.From, addr.IP.String())
 			}
 		}
 	}
@@ -137,7 +137,7 @@ func (d *Discovery) cleanupPeers() {
 				if now.Sub(lastSeen) > d.peerTimeout {
 					delete(d.peers, name)
 					delete(d.peerLastSeen, name)
-					fmt.Printf("Peer %s timed out\n", name)
+					fmt.Printf("⏰ Peer %s timed out\n", name)
 				}
 			}
 			d.mu.Unlock()
