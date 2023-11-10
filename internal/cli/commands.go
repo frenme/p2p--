@@ -90,9 +90,9 @@ func HandleCommand(c *chat.Chat, input string) (bool, error) {
 }
 
 func handleHelp(c *chat.Chat, args []string) error {
-	fmt.Println("Available commands:")
+	fmt.Println("\033[36mAvailable commands:\033[0m")
 	for _, cmd := range Commands {
-		fmt.Printf("  /%s - %s\n", cmd.Name, cmd.Description)
+		fmt.Printf("  \033[32m/%s\033[0m - %s\n", cmd.Name, cmd.Description)
 	}
 	return nil
 }
