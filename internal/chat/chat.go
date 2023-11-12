@@ -59,8 +59,8 @@ func (c *Chat) Start() error {
 	go c.handleIncomingMessages()
 
 	time.Sleep(100 * time.Millisecond)
-	fmt.Println("Chat started successfully!")
-	fmt.Println("Type messages to send, or 'quit' to exit")
+	fmt.Println("✅ Chat started successfully!")
+	fmt.Println("💭 Type messages to send, or 'quit' to exit")
 
 	<-c.stopCh
 	return nil
