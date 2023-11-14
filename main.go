@@ -4,17 +4,20 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"runtime"
 	"strings"
 
 	"p2p-chat/internal/chat"
 	"p2p-chat/internal/cli"
 	"p2p-chat/internal/config"
 	"p2p-chat/internal/utils"
+	"p2p-chat/internal/version"
 )
 
 func main() {
 	if len(os.Args) < 2 {
 		fmt.Println("Usage: go run . <username>")
+		fmt.Printf("P2P Chat %s (Go %s)\n", version.Short(), runtime.Version())
 		return
 	}
 
