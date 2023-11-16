@@ -41,9 +41,10 @@ func (c *TCPClient) SendMessage(address string, port int, msg *types.Message) er
 }
 
 func (c *TCPClient) sendMessageOnce(address string, port int, msg *types.Message) error {
-	conn, err := net.DialTimeout("tcp", fmt.Sprintf("%s:%d", address, port), c.connTimeout)
+	addr := fmt.Sprintf("%s:%d", address, port)
+	conn, err := net.DialTimeout("tcp", addr, c.connTimeout)
 	if err != nil {
-		return fmt.Errorf("failed to connect: %v", err)
+		return fmt.Errorf("failed to connect to %s: %v", addr, err)
 	}
 	defer conn.Close()
 	
@@ -52,8 +53,9 @@ func (c *TCPClient) sendMessageOnce(address string, port int, msg *types.Message
 		return fmt.Errorf("failed to marshal message: %v", err)
 	}
 	
-	if _, err := conn.Write(append(data, '\n')); err != nil {
-		return fmt.Errorf("failed to write message: %v", err)
+	data = append(data, '\n')
+	if _, err := conn.Write(data); err != nil {
+		return fmt.Errorf("failed to write message to %s: %v", addr, err)
 	}
 	
 	return nil
