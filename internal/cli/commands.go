@@ -173,12 +173,12 @@ func handleMetrics(c *chat.Chat, args []string) error {
 	m := metrics.Global()
 	sent, received, discovered, errors, uptime := m.GetStats()
 	
-	fmt.Println("=== Chat Metrics ===")
-	fmt.Printf("Uptime: %v\n", uptime.Truncate(time.Second))
-	fmt.Printf("Messages sent: %d\n", sent)
-	fmt.Printf("Messages received: %d\n", received)
-	fmt.Printf("Peers discovered: %d\n", discovered)
-	fmt.Printf("Connection errors: %d\n", errors)
+	fmt.Println("\033[36m=== Chat Metrics ===\033[0m")
+	fmt.Printf("⏱️  Uptime: %v\n", uptime.Truncate(time.Second))
+	fmt.Printf("📤 Messages sent: %d\n", sent)
+	fmt.Printf("📥 Messages received: %d\n", received)
+	fmt.Printf("👥 Peers discovered: %d\n", discovered)
+	fmt.Printf("❌ Connection errors: %d\n", errors)
 	
 	return nil
 }
