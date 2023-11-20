@@ -12,6 +12,10 @@ func IsValidUsername(username string) bool {
 		return false
 	}
 	
+	if !unicode.IsLetter(rune(username[0])) {
+		return false
+	}
+	
 	for _, r := range username {
 		if !unicode.IsLetter(r) && !unicode.IsDigit(r) && r != '_' && r != '-' {
 			return false
