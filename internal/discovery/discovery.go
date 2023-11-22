@@ -76,6 +76,8 @@ func (d *Discovery) broadcast(conn *net.UDPConn) {
 			
 			if _, err := conn.WriteToUDP(data, broadcastAddr); err != nil {
 				fmt.Printf("Failed to send broadcast: %v\n", err)
+			} else {
+				fmt.Printf("📡 Broadcasting discovery message\n")
 			}
 		case <-d.stopCh:
 			return
