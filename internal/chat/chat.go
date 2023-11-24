@@ -119,7 +119,7 @@ func (c *Chat) SendMessageToPeers(content string) {
 	for _, addr := range peers {
 		go func(address string) {
 			if err := c.tcpClient.SendMessage(address, 8081, msg); err != nil {
-				fmt.Printf("Failed to send message to %s: %v\n", address, err)
+				fmt.Printf("❌ Failed to send message to %s: %v\n", address, err)
 				metrics.Global().IncrementConnectionErrors()
 			} else {
 				metrics.Global().IncrementMessagesSent()
