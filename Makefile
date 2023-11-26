@@ -26,7 +26,7 @@ clean:
 
 run: build
 	@echo "Running $(BINARY_NAME)..."
-	@./$(BUILD_DIR)/$(BINARY_NAME)
+	@./$(BUILD_DIR)/$(BINARY_NAME) TestUser
 
 install: build
 	@echo "Installing $(BINARY_NAME)..."
