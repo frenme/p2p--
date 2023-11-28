@@ -73,6 +73,10 @@ func (m *Manager) AddMessage(msg *types.Message) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	m.messages = append(m.messages, msg)
+	
+	if len(m.messages) > 1000 {
+		m.messages = m.messages[100:]
+	}
 }
 
 func (m *Manager) GetMessages() []*types.Message {
