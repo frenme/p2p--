@@ -112,10 +112,10 @@ func (c *Chat) SendMessageToPeers(content string) {
 	if content == "" {
 		return
 	}
-	
+
 	msg := types.NewTextMessage(c.username, content)
 	peers := c.GetPeers()
-	
+
 	for _, addr := range peers {
 		go func(address string) {
 			if err := c.tcpClient.SendMessage(address, 8081, msg); err != nil {
@@ -126,6 +126,6 @@ func (c *Chat) SendMessageToPeers(content string) {
 			}
 		}(addr)
 	}
-	
+
 	c.AddMessage(msg)
 }
