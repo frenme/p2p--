@@ -23,3 +23,7 @@ func Full() string {
 func Short() string {
 	return Version
 }
+
+func BuildInfo() (string, string, string) {
+	return GitCommit, BuildDate, GoVersion
+}
